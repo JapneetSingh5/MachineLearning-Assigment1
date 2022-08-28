@@ -10,7 +10,6 @@ from mpl_toolkits import mplot3d
 
 def plot_mesh(x, y):
     n = x.size[0] 
-    
 
 def average_error(x, y, a, b):
     m = x.size 
@@ -52,9 +51,6 @@ def batch_gradient_descent(x, y):
         b = b_new
         ab_list.append([a,b,average_error(x,y,a,b)])
         # print(a_new, b_new)
-
-
-
 
 def main():
     train_x_file_extension = '/linearX.csv'
@@ -111,9 +107,6 @@ def main():
     ax2.set_ylabel('b')
     fig2.colorbar(cp)
     plt.show()
-    
-    
-
 
 if __name__ == "__main__":
     main()
