@@ -29,11 +29,9 @@ def stochastic_gradient_descent(batch_size, batch_count, samples, theta_init, le
         counter+=1;
         start_index = batch_number*batch_size
         end_index = batch_number*batch_size + batch_size
-        samples_batch = samples.iloc[start_index:end_index]
+        samples_batch = samples.iloc[start_index:end_index].copy()
+        samples_batch = samples_batch.reset_index(drop=True)
         print(samples_batch)
-        if(cost(theta, samples_batch)<stopping_criteria or counter>max_iterations):
-            return return_list
-        print(theta, cost(theta, samples))
         batch_number += 1
         batch_number = batch_number % batch_count
         theta_zero = theta[0] + learning_rate*(lms_update_theta(samples_batch, theta, 0))
@@ -41,7 +39,11 @@ def stochastic_gradient_descent(batch_size, batch_count, samples, theta_init, le
         theta_two = theta[2] + learning_rate*(lms_update_theta(samples_batch, theta, 2))
         theta = [theta_zero, theta_one, theta_two]
         print(theta)
-        return_list.append([theta, cost(theta, samples_batch)])
+        current_cost = cost(theta, samples_batch);
+        return_list.append([theta, current_cost])
+        print(theta, current_cost)
+        if(current_cost<stopping_criteria or counter>max_iterations):
+            return return_list
 
 
 def main():
@@ -69,12 +71,12 @@ def main():
     # Q2 Part (B) Stochastic Gradient Descent
     
     # (i) Batch Size = 1
-    batch_size = 100
-    learning_rate = 0.001
+    batch_size = 1000000
+    learning_rate = 0.0001
     stopping_criteria = 2*1e-5
     batch_count = round(1000000/batch_size)
     theta_init = [0, 0, 0]
-    samples = samples.sample(frac=1).reset_index()
+    samples = samples.sample(frac=1).reset_index(drop=True)
     max_iterations = 10000
     theta_list = stochastic_gradient_descent(batch_size, batch_count, samples, theta_init, learning_rate, stopping_criteria, max_iterations)
     

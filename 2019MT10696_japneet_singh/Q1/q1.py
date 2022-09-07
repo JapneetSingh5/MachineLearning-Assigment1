@@ -8,9 +8,6 @@ import pandas as pd
 import matplotlib.pyplot as plt 
 from mpl_toolkits import mplot3d
 
-def plot_mesh(x, y):
-    n = x.size[0] 
-
 def average_error(x, y, a, b):
     m = x.size 
     aggregate_error = 0
