@@ -1,10 +1,8 @@
 from math import sqrt,exp
-from pickletools import markobject
 import numpy as np
 import sys
 import pandas as pd
 import matplotlib.pyplot as plt 
-
 
 def build_h_theta_x(X, theta):
     return (1/(1 + np.exp(-np.dot(X,theta))))
@@ -14,37 +12,39 @@ def build_gradient(X, Y, theta):
 
 def build_hessian(X, theta):
     h_theta_x = build_h_theta_x(X, theta)
-    diagonal = np.identity(X.shape[0]) * np.dot(h_theta_x.T,(1-h_theta_x))
-    # print('diagonal', diagonal, diagonal.shape)
-    return np.dot(X.T, np.dot(diagonal, X))
+    return np.dot(X.T, np.dot(np.identity(X.shape[0]) * np.dot(h_theta_x.T,(1-h_theta_x)), X))
 
 def theta_from_newtons(X, Y, theta):
     count = 0
     curr_theta =  theta
     temp_theta = theta
-    print("Intial theta was: ", theta)
+    print("Intial theta was: " + str(theta))
     while( ( np.max(np.abs((curr_theta-temp_theta)))>1e-4) or count==0):
         count = count + 1
         gradient = build_gradient(X, Y, curr_theta)
-        print('gradient', gradient)
+        # print('The gradient is' + str(gradient))
         hessian = build_hessian(X, curr_theta)
-        print('hessian', hessian)
+        # print('The hessian is'+ str(hessian))
         temp_theta = curr_theta
         curr_theta = curr_theta - np.dot(np.linalg.inv(hessian),gradient)
-        print("Theta at iter", count," is ", curr_theta)
-    print("Final theta was", curr_theta)
+        # print("Theta at iter" + str(count) + " is "+str(curr_theta))
+    print("Final theta was" + str(curr_theta))
     return curr_theta
 
 def main():
     # Step 1. Process command line arguments and build input data structures
-    train_x_file_extension = '/logisticX.csv'
-    train_y_file_extension = '/logisticY.csv'
+    train_x_file_extension = '/X.csv'
+    train_y_file_extension = '/Y.csv'
+    test_x_file_extension = '/X.csv'
+    test_y_file_extension = '/result_3.txt'
     args_length = len(sys.argv);
     if(args_length<3):
         print("Insufficient arguments provided")
     path_train_data = sys.argv[1]
     path_test_data = sys.argv[2]
     train_data_x = path_train_data + train_x_file_extension;
+    test_data_x = path_test_data + test_x_file_extension;
+    test_result_y = path_test_data + test_y_file_extension;
     train_data_y = path_train_data + train_y_file_extension;
     # Step 2. Prepare input data
     # 2(i) Add X0 for intercept term
@@ -102,6 +102,20 @@ def main():
     plt.title('Decision Boundary with Training Data')
     plt.savefig('DecisionBoundary.png')
     # plt.show()
+
+    df_test = pd.read_csv(test_data_x, header=None)
+    df_test[2] = 1
+    df_test[0] = (df_test[0] - x1_mean)/x1_std;
+    df_test[1] = (df_test[1] - x2_mean)/x2_std;
+    df_test = df_test[[2,0,1]]
+    X_test = df_test.to_numpy()
+    Y_result = build_h_theta_x(X_test, theta_optimal)
+    Y_result = [int(x>=0.5) for x in Y_result]
+    df_res = pd.DataFrame()
+    df_res[0] = pd.array(Y_result)
+    df_res.to_csv(test_result_y, header=None, index=False)
+
+
 
 if __name__ == "__main__":
     main()

@@ -1,39 +1,9 @@
 from math import sqrt,exp,log
 from numbers import Number
-from pickletools import markobject
 import numpy as np
 import sys
 import pandas as pd
 import matplotlib.pyplot as plt 
-
-
-def build_h_theta_x(X, theta):
-    return (1/(1 + np.exp(-np.dot(X,theta))))
-
-def build_gradient(X, Y, theta):
-    return np.dot(X.T, (build_h_theta_x(X,theta)-Y))
-
-def build_hessian(X, theta):
-    h_theta_x = build_h_theta_x(X, theta)
-    diagonal = np.identity(X.shape[0]) * np.dot(h_theta_x.T,(1-h_theta_x))
-    return np.dot(X.T, np.dot(diagonal, X))
-
-def theta_from_newtons(X, Y, theta):
-    count = 0
-    curr_theta =  theta
-    temp_theta = theta
-    print("Intial theta was: ", theta)
-    while( ( np.max(np.abs((curr_theta-temp_theta)))>1e-4) or count==0):
-        count = count + 1
-        gradient = build_gradient(X, Y, curr_theta)
-        print('gradient', gradient)
-        hessian = build_hessian(X, curr_theta)
-        print('hessian', hessian)
-        temp_theta = curr_theta
-        curr_theta = curr_theta - np.dot(np.linalg.inv(hessian),gradient)
-        print("Theta at iter", count," is ", curr_theta)
-    print("Final theta was", curr_theta)
-    return curr_theta
 
 def build_sigma_zero(X, Y_bin, u_zero, num_zero):
     s0 = np.zeros((2, 2))
@@ -54,39 +24,40 @@ def build_sigma_one(X, Y_bin, u_one, num_one):
 def main():
     # Step 1. Process command line arguments and build input data structures
     train_x_file_extension = '/q4x.dat'
+    test_x_file_extension = '/X.csv'
     train_y_file_extension = '/q4y.dat'
+    test_y_file_extension = '/result_4.txt'
     args_length = len(sys.argv);
     if(args_length<3):
-        print("Insufficient arguments provided")
+        print("Insufficient arguments provided, exiting")
+        sys.exit(1)
     path_train_data = sys.argv[1]
     path_test_data = sys.argv[2]
     train_data_x = path_train_data + train_x_file_extension;
+    test_data_x = path_test_data + test_x_file_extension;
     train_data_y = path_train_data + train_y_file_extension;
+    test_result_y = path_test_data + test_y_file_extension
     # Step 2. Prepare input data
-    # 2(i) Add X0 for intercept term
     df = pd.read_csv(train_data_x, header=None,sep='  ',engine='python')
-    # df[2] = 1
-    # 2(ii) Normalize data to zero mean, unit variance
-    # 2(iii) Normalize X1
+    # 2(i) Normalize data to zero mean, unit variance
     # print("np.mean", np.mean(df.to_numpy()), "np.std", np.std(df.to_numpy()))
-    # print(df[0].mean(), df[0].std(),np.mean(df[0].to_numpy()), np.std(df[0].to_numpy()))
     # NumPy giving more precise mean values than Pandas, hence used its mean function
     x1_mean = np.mean(df[0].to_numpy())
     x1_std = np.std(df[0].to_numpy())
     df[0] = (df[0] - x1_mean)/x1_std;
-    print(df[0].mean(), df[0].std(),np.mean(df[0].to_numpy()), np.std(df[0].to_numpy()))
-    # 2(iv) Normalize X2
+    # print(df[0].mean(), df[0].std(),np.mean(df[0].to_numpy()), np.std(df[0].to_numpy()))
+    # 2(ii) Normalize X2
     x2_mean = np.mean(df[1].to_numpy())
     x2_std = np.std(df[1].to_numpy())
     df[1] = (df[1] - x2_mean)/x2_std;
     print(df[1].mean(), df[1].std())
-    # 2(v) build NumPy array for further usage
+    # 2(ii) build NumPy array for further usage
     X = df.to_numpy()
-    # 2(vi) build y values NumPy array
+    # 2(iv) build y values NumPy array
     df[3] = pd.read_csv(train_data_y, header=None)
     Y = df[3].to_numpy().reshape(-1,1)
     Y_bin = np.array((Y=='Canada'), dtype=np.float)
-    print(Y_bin)
+    # print(Y_bin)
     # print(Y, Y.shape)
 
     # Step 3. Plot training data on a scatter plot
@@ -142,23 +113,44 @@ def main():
             x = x.reshape(2, 1)
             z[i][j] = C + np.dot(x.T, np.matmul(sigma_common_inv, u_one-u_zero))
 
-    plt.contour(x1, x2, z, levels=[0], color='green')
+    plt.contour(x1, x2, z, levels=[0])
     plt.title("Training Data with learned boundary")
     plt.savefig("LinearBoundary.png")
 
-    D = log(phi/(1-phi)) - 0.5*log(np.linalg.det(sigma_one)/np.linalg.det(sigma_zero)) 
+    D = log(phi/(1-phi)) - 0.5*log(abs(np.linalg.det(sigma_one))/abs(np.linalg.det(sigma_zero))) 
     for i in range(0, x1.shape[0]):
         for j in range(0, len(z[0])):
             x = np.array([x1[i][j], x2[i][j]])
             x = x.reshape(2, 1)
             z[i][j] = D + 0.5*np.dot((x-u_zero).T, np.matmul(sigma_zero_inv, (x-u_zero))) - 0.5*np.dot((x-u_one).T, np.matmul(sigma_one_inv, (x-u_one)))
 
-    plt.contour(x1, x2, z, levels=[0], color='black')
+    plt.contour(x1, x2, z, levels=[0])
     plt.title("Training Data with learned boundary")
     plt.savefig("QuadraticBoundary.png")
 
 
-    plt.show()
+    # plt.show()
+    # plt.close()
+
+    df_test = pd.read_csv(test_data_x, header=None)
+    df_test[0] = (df_test[0] - x1_mean)/x1_std;
+    df_test[1] = (df_test[1] - x2_mean)/x2_std;
+    # df_test = df_test[[1, 0]]
+    X_test = df_test.to_numpy()
+    print(X_test)
+    Y_result = [ ( log(phi/(1-phi)) - 0.5*log(abs(np.linalg.det(sigma_one))/abs(np.linalg.det(sigma_zero))) + 0.5*np.dot((row.reshape(2,1)-u_zero).T, np.matmul(sigma_zero_inv, (row.reshape(2,1)-u_zero))) - 0.5*np.dot((row.reshape(2,1)-u_one).T, np.matmul(sigma_one_inv, (row.reshape(2,1)-u_one))) ) for row in X_test]
+    Y_result = [int(x>=0) for x in Y_result]
+    Y_category = np.array(["SampleCategory"]*len(Y_result))
+    for i in range(0, Y_category.shape[0]):
+        if Y_result[i]==1 :
+            Y_category[i] = 'Canada'
+        else:
+            Y_category[i] =  'Alaska'
+    df_res = pd.DataFrame()
+    df_res[0] = pd.array(Y_category)
+    df_res.to_csv(test_result_y, header=None, index=False)
+
+
 
 if __name__ == "__main__":
     main()
