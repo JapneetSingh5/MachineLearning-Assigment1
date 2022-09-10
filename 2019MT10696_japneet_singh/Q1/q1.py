@@ -4,6 +4,7 @@ import sys
 import pandas as pd
 import matplotlib.pyplot as plt 
 
+# NOTE: FOR SUBMISSION, HAVE COMMENTED OUT PLT.PAUSE(2) TO SAVE TIME
 def average_error(data_x, data_y, theta):
     return float(np.dot((np.dot(data_x, theta)-data_y).T, np.dot(data_x, theta)-data_y))/(2.0*len(data_x))
 
@@ -31,6 +32,7 @@ def batch_gradient_descent(data_x, data_y, learning_rate, cut_off, max_iteration
         theta -= build_gradient(data_x, data_y, theta)*learning_rate
     print("Number of iterations taken to converge: "+str(iter_counter))
     print("Final theta parameters obtained from the gradient descent: " +  str(theta[0]) + "," + str(theta[1]))
+    print("Final error value: " + str(curr_cost))
     return [theta,history]
 
 def main():
@@ -38,7 +40,7 @@ def main():
     train_x_file_extension = '/X.csv'
     train_y_file_extension = '/Y.csv'
     test_x_file_extension = '/X.csv'
-    test_y_file_extension = '/result_1.txt'
+    test_y_file_extension = './result_1.txt'
     args_length = len(sys.argv);
     if(args_length<3):
         print("Insufficient arguments provided, exiting")
@@ -73,6 +75,9 @@ def main():
     plt.figure(1)
     plt.scatter(df[0].to_numpy(), Y.ravel())
     plt.plot(df[0].to_numpy(), Y1.ravel(), color="red")
+    plt.xlabel("Feature X : Acidity")
+    plt.ylabel("Value Y : Density")
+    plt.title("Density v/s Acidity of wine : Linear Regression")
     plt.savefig("DataAndHypothesis.png")
 
     # Q1 Part (C) - 3D Mesh showing error function and error value at each iteration
@@ -96,24 +101,27 @@ def main():
     print("Making 3d Map of Gaussian Descent Error Function's Values..")
     for i in range(1, len(ab_list)):
         plt.plot(ab_list[i][1], ab_list[i][0], ab_list[i][2], c='red', marker='o',zorder=2)
-        plt.pause(0.2)
+        # plt.pause(0.2)
     plt.savefig("GradientDescentWithCost.png")
     plt.close()
     print("Visualising how the cost function decays..")
     # Visualisation of how cost decays
     plt.figure(3)
     plt.scatter(range(1, len(ab_list)+1), [ele[2] for ele in ab_list], c='red', marker='o', s=1, zorder=10)
+    plt.xlabel("Number of Iterations ->")
+    plt.ylabel("Cost function value")
+    plt.title("Cost v/s Iterations")
     plt.savefig("ErrorIterations.png")
     print("Making countor plot for learning rate = 0.015")
-    # Q1 Part (D) - contour for above gaussian descent
+    # Q1 Part (D) - contour for above gradient descent
     plt.figure(4)
     plt.contour(X3d, Y3d, Z, 20, cmap='cool')
     for i in range(0, len(ab_list)):
         if(i>1000):
             break
         plt.plot(ab_list[i][1], ab_list[i][0], c='red', marker='o',zorder=2)
-        plt.pause(0.2)
-    plt.savefig("Contour1.png")
+        # plt.pause(0.2)
+    plt.savefig("Contour_StepSize_0.015.png")
     print("Making countor plot for learning rate = 0.01")
     # Q1 Part (E) - contour plots for LR = 0.01, 0.025, 0.1 respectivel
     plt.figure(5)
@@ -123,7 +131,7 @@ def main():
         if(i>1000):
             break
         plt.plot(ab_list2[i][1], ab_list2[i][0], c='red', marker='o',zorder=2)
-        plt.pause(0.2)
+        # plt.pause(0.2)
     plt.savefig("Contour_StepSize_0.01.png")
     print("Making countor plot for learning rate = 0.025")
     plt.figure(6)
@@ -133,7 +141,7 @@ def main():
         if(i>1000):
             break
         plt.plot(ab_list3[i][1], ab_list3[i][0], c='red', marker='o',zorder=2)
-        plt.pause(0.2)
+        # plt.pause(0.2)
     plt.savefig("Contour_StepSize_0.025.png")
     print("Making countor plot for learning rate = 0.01")
     plt.figure(7)
@@ -143,13 +151,13 @@ def main():
         if(i>1000):
             break
         plt.plot(ab_list4[i][1], ab_list4[i][0], c='red', marker='o',zorder=2)
-        plt.pause(0.2)
+        # plt.pause(0.2)
     plt.savefig("Contour_StepSize_0.1.png")
 
     df_test = pd.read_csv(test_data_x, header=None)
     df_test[0] = df_test[0].transform(lambda x: ((x-x_mean)/x_std))
     df_test = df_test*theta1[1] + theta1[0] 
-    df_test.to_csv(test_result_y, index=False, header=None)
+    df_test.to_csv(test_y_file_extension, index=False, header=None)
 
 if __name__ == "__main__":
     main()

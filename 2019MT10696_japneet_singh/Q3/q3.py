@@ -36,7 +36,7 @@ def main():
     train_x_file_extension = '/X.csv'
     train_y_file_extension = '/Y.csv'
     test_x_file_extension = '/X.csv'
-    test_y_file_extension = '/result_3.txt'
+    test_y_file_extension = './result_3.txt'
     args_length = len(sys.argv);
     if(args_length<3):
         print("Insufficient arguments provided")
@@ -78,13 +78,13 @@ def main():
     x1_for_y0 = df.loc[df[3]==0].reset_index(drop=True)[1]
     x0_for_y1 = df.loc[df[3]==1].reset_index(drop=True)[0]
     x1_for_y1 = df.loc[df[3]==1].reset_index(drop=True)[1]
-    plt.figure(1, figsize=(16, 9))
+    plt.figure(1, figsize=(8, 5))
     plt.scatter(x0_for_y0, x1_for_y0, color='red', marker='_', label='Y=0')
     plt.scatter(x0_for_y1, x1_for_y1, color='green', marker='+', label='Y=1')
     plt.xlabel('Feature X1')
     plt.ylabel('Feature X2')
     plt.legend(loc='upper right')
-    plt.title('Training Data for Q3')
+    plt.title('Training Data Scatter Plot')
     plt.savefig('TrainingData.png')
     
     # Step 4. Use Newton's Method to get correct parameters
@@ -99,7 +99,7 @@ def main():
     plt.plot(x_val, y_val, color='b')
     ax.set_xlim([np.min(X[:, 1]), np.max(X[:, 1]) ])
     ax.set_ylim([np.min(X[:, 2]), np.max(X[:, 2]) ])
-    plt.title('Decision Boundary with Training Data')
+    plt.title('Learned Logistic Regression Decision Boundary with Training Data Scatter Plot')
     plt.savefig('DecisionBoundary.png')
     # plt.show()
 
@@ -113,7 +113,7 @@ def main():
     Y_result = [int(x>=0.5) for x in Y_result]
     df_res = pd.DataFrame()
     df_res[0] = pd.array(Y_result)
-    df_res.to_csv(test_result_y, header=None, index=False)
+    df_res.to_csv(test_y_file_extension, header=None, index=False)
 
 
 
